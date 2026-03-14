@@ -1,20 +1,20 @@
-from .utils import Colors, MARKDOWN_AVAILABLE, WEASYPRINT_AVAILABLE
+from .utils import console, MARKDOWN_AVAILABLE, WEASYPRINT_AVAILABLE
 
 
 def convert_to_pdf(md_content, output_path):
     """Converts Markdown to PDF using WeasyPrint."""
 
     if not WEASYPRINT_AVAILABLE:
-        print(f"{Colors.RED}Error: WeasyPrint not installed.{Colors.ENDC}")
-        print(f"{Colors.YELLOW}Install: uv add weasyprint{Colors.ENDC}")
+        print(f"{console.RED}Error: WeasyPrint not installed.{console.ENDC}")
+        print(f"{console.YELLOW}Install: uv add weasyprint{console.ENDC}")
         return False
 
     if not MARKDOWN_AVAILABLE:
-        print(f"{Colors.RED}Error: Markdown library not installed.{Colors.ENDC}")
-        print(f"{Colors.YELLOW}Install: uv add markdown{Colors.ENDC}")
+        print(f"{console.RED}Error: Markdown library not installed.{console.ENDC}")
+        print(f"{console.YELLOW}Install: uv add markdown{console.ENDC}")
         return False
 
-    print(f"  {Colors.BLUE}[*]{Colors.ENDC} Converting to PDF with WeasyPrint...")
+    print(f"  {console.BLUE}[*]{console.ENDC} Converting to PDF with WeasyPrint...")
 
     try:
         import markdown
@@ -97,7 +97,7 @@ def convert_to_pdf(md_content, output_path):
         return True
 
     except Exception as e:
-        print(f"{Colors.RED}PDF generation failed: {e}{Colors.ENDC}")
+        print(f"{console.RED}PDF generation failed: {e}{console.ENDC}")
         return False
 
 
@@ -105,8 +105,8 @@ def convert_to_html(md_content, output_path):
     """Converts Markdown content to a standalone, interactive HTML file."""
 
     if not MARKDOWN_AVAILABLE:
-        print(f"{Colors.RED}Error: Markdown library not installed.{Colors.ENDC}")
-        print(f"{Colors.YELLOW}Install: uv add markdown{Colors.ENDC}")
+        print(f"{console.RED}Error: Markdown library not installed.{console.ENDC}")
+        print(f"{console.YELLOW}Install: uv add markdown{console.ENDC}")
         return False
 
     try:
@@ -536,5 +536,5 @@ def convert_to_html(md_content, output_path):
             f.write(html_doc)
         return True
     except Exception as e:
-        print(f"{Colors.RED}HTML generation failed: {e}{Colors.ENDC}")
+        print(f"{console.RED}HTML generation failed: {e}{console.ENDC}")
         return False
