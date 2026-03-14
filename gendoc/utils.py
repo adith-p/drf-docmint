@@ -1,6 +1,7 @@
 import sys
+import os
 import importlib.util
-from rich.console import Console
+from rich.console import Console, Group
 from rich.progress import (
     Progress,
     SpinnerColumn,
@@ -8,15 +9,92 @@ from rich.progress import (
     BarColumn,
     TaskProgressColumn,
 )
+from rich.live import Live
+from rich.text import Text
 
-# Export a global console for the whole app
 console = Console()
 
 # --- Dependency Checks ---
-# Using find_spec is faster as it doesn't execute the module's init code
 MARKDOWN_AVAILABLE = importlib.util.find_spec("markdown") is not None
 WEASYPRINT_AVAILABLE = importlib.util.find_spec("weasyprint") is not None
 YAML_AVAILABLE = importlib.util.find_spec("yaml") is not None
+
+
+# --- CROSS-PLATFORM INTERACTIVE MENU ---
+def interactive_select(title: str, choices: list[str]) -> str:
+    """A lightweight, zero-dependency cross-platform arrow-key menu."""
+
+    def get_key():
+        if os.name == "nt":  # Windows
+            import msvcrt
+
+            while True:
+                key = msvcrt.getch()
+                if key in (b"\x00", b"\xe0"):  # Arrow keys trigger two bytes in Windows
+                    char = msvcrt.getch()
+                    if char == b"H":
+                        return "up"
+                    if char == b"P":
+                        return "down"
+                if key in (b"\r", b"\n"):
+                    return "enter"
+                if key == b"\x03":
+                    raise KeyboardInterrupt
+                return key.decode("utf-8", "ignore")
+        else:  # Mac/Linux
+            import tty, termios
+
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                ch = sys.stdin.read(1)
+                if ch == "\x1b":  # Escape sequence for arrows
+                    ch2 = sys.stdin.read(2)
+                    if ch2 == "[A":
+                        return "up"
+                    if ch2 == "[B":
+                        return "down"
+                if ch in ("\r", "\n"):
+                    return "enter"
+                if ch == "\x03":
+                    raise KeyboardInterrupt
+                return ch
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+    idx = 0
+
+    def render_menu():
+        lines = [Text(f"? {title}", style="bold cyan")]
+        for i, c in enumerate(choices):
+            if i == idx:
+                lines.append(Text(f" ❯ {c}", style="bold green"))
+            else:
+                lines.append(Text(f"   {c}", style="dim"))
+        return Group(*lines)
+
+    try:
+        # Live updates the console in-place without scrolling
+        with Live(
+            render_menu(), console=console, auto_refresh=False, transient=True
+        ) as live:
+            while True:
+                key = get_key()
+                if key == "up":
+                    idx = max(0, idx - 1)
+                elif key == "down":
+                    idx = min(len(choices) - 1, idx + 1)
+                elif key == "enter":
+                    break
+                live.update(render_menu(), refresh=True)
+
+        # Print the final selection so it stays in the terminal history
+        console.print(f"[bold cyan]? {title}[/bold cyan] [green]{choices[idx]}[/green]")
+        return choices[idx]
+    except KeyboardInterrupt:
+        console.print("[red]Aborted by user.[/red]")
+        sys.exit(1)
 
 
 # --- Phase Loader ---
@@ -30,7 +108,7 @@ class ProgressBar:
                 BarColumn(),
                 TaskProgressColumn(),
                 console=console,
-                transient=True,  # Disappears when done to keep terminal clean
+                transient=True,
             )
             self.task = self.progress.add_task(
                 "[cyan]Scanning project...", total=total_phases
@@ -43,7 +121,6 @@ class ProgressBar:
         if self.verbose:
             console.print(f"  [green][+][/green] {msg}")
             return
-
         if msg.startswith("Phase"):
             parts = msg.split(":", 1)
             description = parts[1].strip() if len(parts) > 1 else msg
@@ -86,6 +163,8 @@ def get_mock_value(ftype):
 
 
 def generate_json_example(serializer_name, serializers_map, visited=None):
+    from .utils import get_base_type
+
     if visited is None:
         visited = set()
     base_name = get_base_type(serializer_name)

@@ -5,16 +5,16 @@ def convert_to_pdf(md_content, output_path):
     """Converts Markdown to PDF using WeasyPrint."""
 
     if not WEASYPRINT_AVAILABLE:
-        print(f"{console.RED}Error: WeasyPrint not installed.{console.ENDC}")
-        print(f"{console.YELLOW}Install: uv add weasyprint{console.ENDC}")
+        console.print("[red]Error: WeasyPrint not installed.[/red]")
+        console.print("[yellow]Install: uv add weasyprint[/yellow]")
         return False
 
     if not MARKDOWN_AVAILABLE:
-        print(f"{console.RED}Error: Markdown library not installed.{console.ENDC}")
-        print(f"{console.YELLOW}Install: uv add markdown{console.ENDC}")
+        console.print("[red]Error: Markdown library not installed.[/red]")
+        console.print("[yellow]Install: uv add markdown[/yellow]")
         return False
 
-    print(f"  {console.BLUE}[*]{console.ENDC} Converting to PDF with WeasyPrint...")
+    console.print("  [blue][*][/blue] Converting to PDF with WeasyPrint...")
 
     try:
         import markdown
@@ -97,7 +97,7 @@ def convert_to_pdf(md_content, output_path):
         return True
 
     except Exception as e:
-        print(f"{console.RED}PDF generation failed: {e}{console.ENDC}")
+        console.print(f"[red]PDF generation failed: {e}[/red]")
         return False
 
 
@@ -105,15 +105,14 @@ def convert_to_html(md_content, output_path):
     """Converts Markdown content to a standalone, interactive HTML file."""
 
     if not MARKDOWN_AVAILABLE:
-        print(f"{console.RED}Error: Markdown library not installed.{console.ENDC}")
-        print(f"{console.YELLOW}Install: uv add markdown{console.ENDC}")
+        console.print("[red]Error: Markdown library not installed.[/red]")
+        console.print("[yellow]Install: uv add markdown[/yellow]")
         return False
 
     try:
         import markdown
 
         # Convert MD -> HTML using extensions for tables and structure
-        # Added md_in_html to support markdown syntax inside HTML block tags like <details>
         html_body_content = markdown.markdown(
             md_content,
             extensions=[
@@ -126,7 +125,7 @@ def convert_to_html(md_content, output_path):
             ],
         )
 
-        # Enhanced HTML5 Template
+        # Enhanced HTML5 Template (Keep your existing HTML/CSS block exactly the same)
         html_doc = f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -536,5 +535,5 @@ def convert_to_html(md_content, output_path):
             f.write(html_doc)
         return True
     except Exception as e:
-        print(f"{console.RED}HTML generation failed: {e}{console.ENDC}")
+        console.print(f"[red]HTML generation failed: {e}[/red]")
         return False

@@ -8,7 +8,7 @@ def generate_schema(framework, root_dir):
     """Attempts to generate OpenAPI schema using detected framework."""
     manage_py = os.path.join(root_dir, "manage.py")
     if not os.path.exists(manage_py):
-        print(f"{console.RED}Error: manage.py not found in {root_dir}{console.ENDC}")
+        console.print(f"[red]Error: manage.py not found in {root_dir}[/red]")
         return None
 
     cmd = []
@@ -23,11 +23,11 @@ def generate_schema(framework, root_dir):
     if not cmd:
         return None
 
-    print(f"{console.BLUE}Running: {' '.join(cmd)}{console.ENDC}")
+    console.print(f"[blue]Running: {' '.join(cmd)}[/blue]")
     try:
         subprocess.run(cmd, check=True, capture_output=True)
-        print(f"{console.GREEN}Schema generated: {output_file}{console.ENDC}")
+        console.print(f"[green]Schema generated: {output_file}[/green]")
         return output_file
     except subprocess.CalledProcessError as e:
-        print(f"{console.RED}Generation failed: {e.stderr.decode()}{console.ENDC}")
+        console.print(f"[red]Generation failed: {e.stderr.decode()}[/red]")
         return None
